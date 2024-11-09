@@ -11,10 +11,10 @@ username = 'natureza_anon'
 password = '(123456)'  # Preferiblemente usa autenticación con clave SSH en lugar de contraseña
 
 # Ruta del archivo remoto en el servidor
-ruta_remota = 'Huamani_archivo.xlsx'  # El archivo que subiste previamente
+ruta_remota = 'Huamaniarchivo.xlsx'  # El archivo que subiste previamente
 
 # Ruta local dentro de Replit (guardamos el archivo en el directorio actual)
-ruta_local = 'Huamani_archivo.xlsx'
+ruta_local = 'Huamaniarchivo.xlsx'
 
 
 # Función para descargar el archivo desde el servidor remoto
@@ -64,7 +64,7 @@ def download_file():
             ruta_local,  # Ruta local del archivo descargado
             as_attachment=True,  # Esto forzará la descarga
             download_name=
-            'Hectorarchivo.xlsx',  # Nombre del archivo descargado en el navegador
+            'Huamaniarchivo.xlsx',  # Nombre del archivo descargado en el navegador
             mimetype=
             'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
         )
@@ -76,4 +76,4 @@ def download_file():
 
 if __name__ == '__main__':
     # Ejecutar la aplicación Flask
-    app.run(debug=True) 
+    app.run(debug=True)
