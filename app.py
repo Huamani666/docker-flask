@@ -11,10 +11,10 @@ username = 'natureza_anon'
 password = '(123456)'  # Preferiblemente usa autenticación con clave SSH en lugar de contraseña
 
 # Ruta del archivo remoto en el servidor
-ruta_remota = 'Huamani.xlsx'  # El archivo que subiste previamente
+ruta_remota = 'Huamani_archivo.xlsx'  # El archivo que subiste previamente
 
 # Ruta local dentro de Replit (guardamos el archivo en el directorio actual)
-ruta_local = 'Huamani.xlsx'
+ruta_local = 'Huamani_archivo.xlsx'
 
 
 # Función para descargar el archivo desde el servidor remoto
