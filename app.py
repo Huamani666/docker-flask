@@ -1,70 +1,79 @@
 from flask import Flask, send_file, jsonify
-import pandas as pd
 import paramiko
 import os
 
 app = Flask(__name__)
 
-# Ruta para generar y descargar el archivo Excel
-@app.route('/')
-def crear_excel():
-    # Datos de ejemplo
-    data = {
-        "Nombre": ["Ana", "Juan", "Carlos"],
-        "Edad": [28, 34, 29],
-        "Ciudad": ["Lima", "Cusco", "Arequipa"]
-    }
+# Detalles de la conexión SSH
+hostname = 'ssh-natureza.alwaysdata.net'  # Dirección IP o dominio del servidor
+port = 22  # Puerto SSH por defecto
+username = 'natureza_anon'
+password = '(123456)'  # Preferiblemente usa autenticación con clave SSH en lugar de contraseña
 
-    # Crear DataFrame a partir de los datos
-    df = pd.DataFrame(data)
+# Ruta del archivo remoto en el servidor
+ruta_remota = 'Hectorarchivo.xlsx'  # El archivo que subiste previamente
 
-    # Guardar el DataFrame en un archivo Excel
-    archivo_excel = "Huamani.xlsx"
-    df.to_excel(archivo_excel, index=False)
+# Ruta local dentro de Replit (guardamos el archivo en el directorio actual)
+ruta_local = 'Hectorarchivo.xlsx'
 
-    print("Archivo Excel creado con éxito.")
 
-    # Retornar el archivo al cliente para descarga
-    return send_file(archivo_excel, as_attachment=True)
-
-# Ruta para subir el archivo al servidor SSH
-@app.route('/subir_a_ssh', methods=['GET'])
-def subir_a_ssh():
-    # Datos de conexión - reemplaza estos valores o usa variables de entorno para mayor seguridad
-    hostname = 'ssh-natureza.alwaysdata.net' 
-    port = 22
-    username = 'natureza_anon'
-    password = '(123456)'
-
-    # Rutas de archivo
-    archivo_local = 'archivo.xlsx'  # Asegúrate de que el archivo exista
-    archivo_remoto = '/Huamani.xlsx'
+# Función para descargar el archivo desde el servidor remoto
+def descargar_archivo():
+    ssh = None  # Inicializamos la variable ssh fuera del bloque try para evitar el error de "unbound"
 
     try:
-        # Conectar al servidor SSH
+        # Crear una instancia SSHClient
         ssh = paramiko.SSHClient()
-        ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-        ssh.connect(hostname, port=port, username=username, password=password)
+        ssh.set_missing_host_key_policy(
+            paramiko.AutoAddPolicy())  # Permitir claves desconocidas
 
-        # Subir el archivo usando SFTP
+        # Conectarse al servidor remoto
+        ssh.connect(hostname, port=port, username=username, password=password)
+        print("Conexión exitosa.")
+
+        # Usar SFTP para transferir el archivo desde el servidor remoto a la máquina local
         sftp = ssh.open_sftp()
-        sftp.put(archivo_local, archivo_remoto)
+        print(f"Descargando el archivo desde: {ruta_remota} a {ruta_local}...")
+
+        # Descargar el archivo remoto a la ruta local
+        sftp.get(ruta_remota, ruta_local)
         sftp.close()
 
-        # Cerrar la conexión
-        ssh.close()
-
-        print("Archivo subido con éxito al servidor.")
-        return jsonify({"mensaje": "Archivo subido con éxito al servidor."})
+        print(f'Archivo descargado con éxito a {ruta_local}')
+        return ruta_local  # Devolver la ruta local del archivo descargado
 
     except Exception as e:
-        print(f"Error al subir el archivo: {e}")
-        return jsonify({"error": str(e)}), 500
+        print(f'Error al conectar o descargar el archivo: {e}')
+        return None  # Devolver None si ocurre un error
 
-@app.route('/')
-def index():
-    return 'Hello from Flask'
+    finally:
+        # Asegurarse de cerrar la conexión SSH, incluso si ocurre un error
+        if ssh:
+            ssh.close()
+
+
+# Ruta para descargar el archivo desde el servidor SSH a través de Flask
+@app.route('/', methods=['GET'])
+def download_file():
+    # Descargar el archivo desde el servidor remoto
+    ruta_local = descargar_archivo()
+
+    if ruta_local:
+        # Si el archivo fue descargado con éxito, lo enviamos al navegador
+        return send_file(
+            ruta_local,  # Ruta local del archivo descargado
+            as_attachment=True,  # Esto forzará la descarga
+            download_name=
+            'Hectorarchivo.xlsx',  # Nombre del archivo descargado en el navegador
+            mimetype=
+            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        )
+    else:
+        # Si hubo un error en la descarga, devolvemos un mensaje de error
+        return jsonify({"error":
+                        "Hubo un problema al descargar el archivo."}), 500
+
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=8080)
-
+    # Ejecutar la aplicación Flask
+    app.run(debug=True) 
